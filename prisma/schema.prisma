@@ -1,0 +1,42 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Doctor {
+  id              String        @id @default(uuid())
+  name            String
+  specialty       String
+  qualifications  String
+  experience      String
+  rating          Float         @default(4.9)
+  fee             String
+  avatar          String
+  bgColor         String        @default("bg-teal-600")
+  hospital        String
+  availableSlots  String        // Comma-separated or JSON list of slots (e.g. "09:00 AM,09:30 AM,10:00 AM,02:00 PM,02:30 PM")
+  createdAt       DateTime      @default(now())
+
+  appointments    Appointment[]
+}
+
+model Appointment {
+  id             String   @id @default(uuid())
+  doctorId       String
+  doctor         Doctor   @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  patientName    String   @default("John Doe")
+  patientEmail   String   @default("patient@example.com")
+  date           String   // e.g. "Today, Oct 14"
+  time           String   // e.g. "10:00 AM"
+  reason         String?
+  status         String   @default("CONFIRMED") // CONFIRMED, CANCELLED
+  txId           String   @unique
+  createdAt      DateTime @default(now())
+
+  // Strict constraint: A doctor cannot have two active appointments at the exact same date and time
+  @@unique([doctorId, date, time], name: "doctor_datetime_unique")
+}
